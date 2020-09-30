@@ -1,0 +1,1 @@
+This repository is for storing assignments, projects, and other materials for the CSC 165 class taught by Professor Gordon at CSUS.
