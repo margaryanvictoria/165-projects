@@ -1,5 +1,8 @@
 package myGameEngine;
 
+import java.util.ArrayList;
+
+import net.java.games.input.Controller;
 import ray.input.InputManager;
 import ray.input.action.AbstractInputAction;
 import ray.input.action.Action;
@@ -8,7 +11,8 @@ import ray.rage.scene.SceneNode;
 import ray.rml.Vector3;
 import ray.rml.Vector3f;
 
-public class Camera3Pcontroller {
+
+public class Camera3PKB {
 	private Camera camera;//the camera being controlled  
 	private SceneNode cameraN;//the node the camera is attached to  
 	private SceneNode target;//the target the camera looks at  
@@ -17,17 +21,19 @@ public class Camera3Pcontroller {
 	private float radias;//distance between camera and target  
 	private Vector3 targetPos;//target’s position in the world  
 	private Vector3 worldUpVec;
+	ArrayList<Controller> controllers;
 	
 	
-	public Camera3Pcontroller(Camera cam, SceneNode camN,SceneNode targ, String controllerName, InputManager im)  { 
+	public Camera3PKB(Camera cam, SceneNode camN,SceneNode targ, InputManager im)  { 
 		camera = cam;    
 		cameraN = camN;    
 		target = targ;    
 		cameraAzimuth = 225.0f;// start from BEHIND and ABOVE the target    
 		cameraElevation = 20.0f;// elevation is in degrees    
 		radias = 2.0f;    
-		worldUpVec = Vector3f.createFrom(0.0f, 1.0f, 0.0f);    
-		setupInput(im, controllerName);    
+		worldUpVec = Vector3f.createFrom(0.0f, 1.0f, 0.0f);
+		controllers = im.getControllers();
+		setupInput(im);    
 		updateCameraPosition();
 	}
 	
@@ -42,39 +48,57 @@ public class Camera3Pcontroller {
 		cameraN.lookAt(target, worldUpVec);     
 	}
 	
-	 private void setupInput(InputManager im, String cn)  { 
+	 private void setupInput(InputManager im)  { 
 		 Action orbitAAction = new OrbitAroundAction();
 		 Action orbitEAction = new OrbitElevationAction();
 		 Action orbitRAction = new OrbitRadiasAction();
 		 
-		 im.associateAction(cn, net.java.games.input.Component.Identifier.Axis.RX,  orbitAAction, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		 //  similar input set up for OrbitRadiasAction, OrbitElevationAction
-		 im.associateAction(cn, net.java.games.input.Component.Identifier.Axis.RY,  orbitEAction, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+		 for(Controller c : controllers) {
+	    		if(c.getType() == Controller.Type.KEYBOARD) {
+	    			
+	    			//movement
+	    			   
+	    			im.associateAction(c, net.java.games.input.Component.Identifier.Key.LEFT,   orbitAAction, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+	    			 im.associateAction(c, net.java.games.input.Component.Identifier.Key.RIGHT,   orbitAAction, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+	    			 
+	    			 
+	    			 //  similar input set up for OrbitRadiasAction, OrbitElevationAction
+	    			 im.associateAction(c, net.java.games.input.Component.Identifier.Key.UP,  orbitEAction, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+	    			 im.associateAction(c, net.java.games.input.Component.Identifier.Key.DOWN,  orbitEAction, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+	    			 
+	    			 
+	    			 //input for zoom in /out
+	    			 im.associateAction(c, net.java.games.input.Component.Identifier.Key.Q	,  orbitRAction, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+	    			 im.associateAction(c, net.java.games.input.Component.Identifier.Key.E,  orbitRAction, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+
+	    		}
 		 
-		 im.associateAction(cn, net.java.games.input.Component.Identifier.Button._0,  orbitRAction, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		 im.associateAction(cn, net.java.games.input.Component.Identifier.Button._1,  orbitRAction, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+		 }
+		 
 	 }
 	
 	 
 	 private class OrbitAroundAction extends AbstractInputAction  
 	 { 
+		 
 		 // Moves the camera around the target (changes camera azimuth).    
 		 public void performAction(float time, net.java.games.input.Event evt)    
 		 {
-			 float rotAmount;      
-			 if (evt.getValue() < -0.2)
+			 float rotAmount;   
+			 
+			 if (evt.getComponent().toString().compareTo("Left") == 0)
 			 { 
-				 rotAmount=-0.4f * evt.getValue(); 
+				 rotAmount=0.4f; 
 			}          
 			 else          
 			 { 
-				 if (evt.getValue() > 0.2)    
+				 if (evt.getComponent().toString().compareTo("Right") == 0)    
 				 { 
-					 rotAmount= -0.4f * evt.getValue(); 
+					 rotAmount=-0.4f; 
 				 }          
 				 else          
 				 { 
-					 rotAmount=0.0f ; 
+					 rotAmount=0.0f; 
 				}      
 			}       
 			 cameraAzimuth += rotAmount;      
@@ -91,17 +115,16 @@ public class Camera3Pcontroller {
 		 public void performAction(float time, net.java.games.input.Event evt)    
 		 {
 			 float rotAmount = 0.0f;
-			 
 			 if(cameraElevation >= 1.0f && cameraElevation <= 30.0f) {
-				 if (evt.getValue() < -0.2)
+				 if (evt.getComponent().toString().compareTo("Up") == 0)
 				 { 
-					 rotAmount=-0.4f; 
+					 rotAmount=0.4f; 
 				}          
 				 else          
 				 { 
-					 if (evt.getValue() > 0.2)    
+					 if (evt.getComponent().toString().compareTo("Down") == 0)    
 					 { 
-						 rotAmount=0.4f; 
+						 rotAmount=-0.4f; 
 					 }          
 					 else          
 					 { 
@@ -120,7 +143,8 @@ public class Camera3Pcontroller {
 		  
 		 
 	 }
-
+	 
+	 
 	 private class OrbitRadiasAction extends AbstractInputAction  
 	 { 
 		 // Moves the camera around the target (changes camera azimuth).    
@@ -128,13 +152,13 @@ public class Camera3Pcontroller {
 		 {
 			 float zoomAmount = 0.0f;
 			 if(radias >= 1.0f && radias <= 3.0f) {
-				 if (evt.getComponent().toString().compareTo("Button 0") == 0)
+				 if (evt.getComponent().toString().compareTo("Q") == 0)
 				 { 
 					  zoomAmount = -0.1f;
 				}          
 				 else          
 				 { 
-					 if (evt.getComponent().toString().compareTo("Button 1") ==0)    
+					 if (evt.getComponent().toString().compareTo("E") ==0)    
 					 { 
 						 zoomAmount = 0.1f;
 					 }          
@@ -152,12 +176,9 @@ public class Camera3Pcontroller {
 			 
 			 updateCameraPosition();  
 		}
-		  
-		 
+	 
+	 
 	 }
-	 
-	 
-	 
 	 
 	 
 }
